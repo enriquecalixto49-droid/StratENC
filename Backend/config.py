@@ -6,8 +6,9 @@ class DataBaseSettings(BaseSettings):
     POSTGRES_PORT: int
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
-    POSTGRES_FRED_DB: str
+    POSTGRES_PRICES_DB: str
     FRED_API_KEY: str
+    TIINGO_API_KEY: str
 
     model_config = SettingsConfigDict(
         env_file= "./.env",
@@ -21,7 +22,7 @@ class DataBaseSettings(BaseSettings):
         '''
         The property decorator allows to access this method as a class variable. 
         '''
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_FRED_DB}"
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_PRICES_DB}"
 
 settings = DataBaseSettings()
  

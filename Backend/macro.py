@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .config import settings
 from .models import MacroRecord  # adjust to wherever your models live
 from .session import SessionLocal, engine
-
+from .tables import macroT
 
 class FredUploader:
     '''
@@ -16,7 +16,7 @@ class FredUploader:
 
     URL = "https://api.stlouisfed.org/fred/series/observations"
 
-    def __init__(self, table: str = "macro_data"):
+    def __init__(self, table: str = macroT):
         self.table = table
 
     # --- get ---------------------------------------------------------
@@ -30,12 +30,13 @@ class FredUploader:
         response.raise_for_status()
         return pd.DataFrame(response.json()["observations"])
 
-    # --- validate ----------------------------------------------------
+   # --- validate ----------------------------------------------------
     def to_records(self, df: pd.DataFrame, series_id: str) -> list[dict]:
         clean = pd.DataFrame({
-            "TK": series_id,
-            "Date": df["date"],
-            "Value": pd.to_numeric(df["value"], errors="coerce"),  # FRED's "." -> NaN
+            "tk": series_id,
+            "name": series_id,            # tp be changed when uploading from dictionary
+            "date": df["date"],
+            "value": pd.to_numeric(df["value"], errors="coerce"),  # FRED's "." -> NaN
         })
         clean = clean.astype(object).where(clean.notna(), None)    # NaN -> None (NULL)
         return [MacroRecord(**row).model_dump() for row in clean.to_dict("records")]
@@ -44,21 +45,22 @@ class FredUploader:
     async def save(self, records: list[dict]) -> None:
         create = text(f"""
             CREATE TABLE IF NOT EXISTS {self.table} (
-                tk    TEXT      NOT NULL,
+                tk    TEXT NOT NULL,
+                name  TEXT NOT NULL,
                 date  TIMESTAMP NOT NULL,
                 value DOUBLE PRECISION,
                 PRIMARY KEY (tk, date)
             )
         """)
         upsert = text(f"""
-            INSERT INTO {self.table} (tk, date, value)
-            VALUES (:TK, :Date, :Value)
-            ON CONFLICT (tk, date) DO UPDATE SET value = EXCLUDED.value
+            INSERT INTO {self.table} (tk, name, date, value)
+            VALUES (:tk, :name, :date, :value)
+            ON CONFLICT (tk, date) DO UPDATE SET name = EXCLUDED.name, value = EXCLUDED.value
         """)
         async with SessionLocal() as session:
             async with session.begin():   # commit on success, rollback on error
                 await session.execute(create)
-                await session.execute(upsert, records) # insert or update if already exists
+                await session.execute(upsert, records)
 
     # --- run ---------------------------------------------------------
     async def upload(self, series_id: str) -> int:
@@ -76,7 +78,7 @@ class FredUploader:
 
 
 async def main():
-    uploader = FredUploader(settings.POSTGRES_FRED_DB)
+    uploader = FredUploader()
     await uploader.upload_many(["DGS10", "DGS2", "FEDFUNDS"])
     await engine.dispose()
 

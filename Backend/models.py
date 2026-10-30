@@ -5,7 +5,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, model_validator
 
-OptionalPositiveDecimal = Annotated[Decimal | None, Field(default=None, gt=0)]
+OptionalPositiveDecimal = Annotated[Decimal | None, Field(default=None, ge=0)]
 CurrencyNotation = Annotated[str, Field(max_length = 3, min_length = 3)]
 
 class BaseRecord(BaseModel):
@@ -160,7 +160,7 @@ class BondReference(BaseRecord):
     issue_date: date
     maturity_date: date
     day_count: DayCount
-    face_value: Decimal = Field(gt=0)
+    face_value: Decimal = Field(ge=0)
     clean_price: OptionalPositiveDecimal
     yield_to_maturity: OptionalPositiveDecimal
     accrued_interest: OptionalPositiveDecimal
