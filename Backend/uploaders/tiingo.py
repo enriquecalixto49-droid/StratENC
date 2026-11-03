@@ -4,15 +4,15 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import requests
 from sqlalchemy import text
-from .tables import equityT, FXT, cryptoT
+from Backend.tables import equityT, FXT, cryptoT
 
-from .config import settings
-from .models import (  # adjust to wherever your models live
+from Backend.config import settings
+from Backend.models import (  # adjust to wherever your models live
     CryptoRecord,
     EquityRecord,
     FXRecord,
 )
-from .session import SessionLocal, engine
+from Backend.session import SessionLocal, engine
 
 BASE_URL = "https://api.tiingo.com/tiingo"
 

@@ -8,6 +8,14 @@ from pydantic import BaseModel, Field, model_validator
 OptionalPositiveDecimal = Annotated[Decimal | None, Field(default=None, ge=0)]
 CurrencyNotation = Annotated[str, Field(max_length = 3, min_length = 3)]
 
+class StaticData(BaseModel):
+    '''
+    Static data for financial instruments. 
+    This is a base class for all static data models.
+    '''
+    tk: str
+    name: str
+    category: str
 class BaseRecord(BaseModel):
     '''
     Basic minimal information.

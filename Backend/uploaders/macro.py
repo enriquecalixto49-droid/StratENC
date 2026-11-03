@@ -4,10 +4,10 @@ import pandas as pd
 import requests
 from sqlalchemy import text
 
-from .config import settings
-from .models import MacroRecord  # adjust to wherever your models live
-from .session import SessionLocal, engine
-from .tables import macroT
+from Backend.config import settings
+from Backend.models import MacroRecord  # adjust to wherever your models live
+from Backend.session import SessionLocal, engine
+from Backend.tables import macroT
 
 class FredUploader:
     '''
@@ -31,10 +31,10 @@ class FredUploader:
         return pd.DataFrame(response.json()["observations"])
 
    # --- validate ----------------------------------------------------
-    def to_records(self, df: pd.DataFrame, series_id: str) -> list[dict]:
+    def to_records(self, df: pd.DataFrame, series_id: str, name: str = None) -> list[dict]:
         clean = pd.DataFrame({
             "tk": series_id,
-            "name": series_id,            # tp be changed when uploading from dictionary
+            "name": name or series_id,
             "date": df["date"],
             "value": pd.to_numeric(df["value"], errors="coerce"),  # FRED's "." -> NaN
         })
@@ -63,15 +63,16 @@ class FredUploader:
                 await session.execute(upsert, records)
 
     # --- run ---------------------------------------------------------
-    async def upload(self, series_id: str) -> int:
-        records = self.to_records(self.get(series_id), series_id)
+    async def upload(self, series_id: str, name: str = None) -> int:
+        records = self.to_records(self.get(series_id), series_id, name)
         await self.save(records)
         return len(records)
 
-    async def upload_many(self, series_ids: list[str]) -> None:
-        for sid in series_ids:
+    async def upload_many(self, series_ids: list[str], names: list[str] = None) -> None:
+        names = names or [None] * len(series_ids)
+        for sid, name in zip(series_ids, names):
             try:
-                n = await self.upload(sid)
+                n = await self.upload(sid, name)
                 print(f"{sid}: {n} rows saved")
             except Exception as e:        # skip a failing series, keep going
                 print(f"{sid} failed: {e!r}")
