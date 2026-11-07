@@ -1,3 +1,12 @@
+TIINGO_CRYPTO_REDUCED = {
+
+    "large_cap": {
+        "btcusd": "Bitcoin / USD", "ethusd": "Ethereum / USD", "bnbusd": "BNB / USD",
+        "xrpusd": "XRP / USD", "solusd": "Solana / USD", "adausd": "Cardano / USD",
+        "dogeusd": "Dogecoin / USD", "trxusd": "TRON / USD",
+    }
+}
+
 TIINGO_CRYPTO_SERIES = {
 
     "large_cap": {
@@ -44,5 +53,5 @@ TIINGO_CRYPTO_SERIES = {
     "crypto_crosses": {
         "ethbtc": "Ethereum / Bitcoin", "ltcbtc": "Litecoin / Bitcoin",
         "xrpbtc": "XRP / Bitcoin", "adabtc": "Cardano / Bitcoin",
-    }
+    } 
 }

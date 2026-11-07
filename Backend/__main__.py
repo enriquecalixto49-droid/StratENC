@@ -62,7 +62,7 @@ async def run_source(source: str, categories: list[str] | None, start: str | Non
     if source == "fred":
         await FredUploader().upload_many(tickers, names=universe)
     else:
-        await get_uploader(source).upload_many(tickers, start)
+        await get_uploader(source, static_data=universe).upload_many(tickers, start)
 
 
 async def main() -> None:

@@ -16,6 +16,15 @@ from Backend.session import SessionLocal, engine
 
 BASE_URL = "https://api.tiingo.com/tiingo"
 
+# Upload metadata without using an additional API request. This is a reduced set of tickers that are known to be supported by Tiingo.
+tiingo_tickers = pd.read_csv(
+    "Backend/static_data/supported_tickers.csv",
+    usecols=["ticker", "priceCurrency", "exchange"]
+).set_index("ticker")
+
+# Lookup dictionaries
+tiingo_supported_tickers_ccy = tiingo_tickers["priceCurrency"].to_dict()
+tiingo_supported_tickers_exch = tiingo_tickers["exchange"].to_dict()
 
 class TiingoUploader(ABC):
     '''
@@ -33,10 +42,11 @@ class TiingoUploader(ABC):
     text_cols: set[str] = {"tk", "name"}
     default_start: str = "2010-01-01"
 
-    def __init__(self, table: str | None = None):
+    def __init__(self, table: str | None = None, static_data: dict | None = None):
         if table:
             self.table = table
         self.headers = {"Authorization": f"Token {settings.TIINGO_API_KEY}"}
+        self.static_data = static_data or {}
 
     def _request(self, path: str, params: dict | None = None):
         response = requests.get(
@@ -131,10 +141,6 @@ class EquityUploader(TiingoUploader):
         "divCash", "splitFactor",
     ]
 
-    def __init__(self, table: str | None = None, currency: str = "USD"):
-        super().__init__(table)
-        self.currency = currency   # Tiingo's daily endpoint does not return the currency
-
     def get(self, ticker: str, start: str) -> pd.DataFrame:
         # without startDate Tiingo returns only the last day
         data = self._request(f"daily/{ticker}/prices", {"startDate": start, "format": "json"})
@@ -144,12 +150,11 @@ class EquityUploader(TiingoUploader):
         '''
         Add the meta data to the table for the specific ticker
         '''
-        meta = self._request(f"daily/{ticker}")   # name and exchange live in the meta endpoint
         out = df[self.PRICE_FIELDS].copy()
         out["tk"] = ticker.upper()
-        out["name"] = meta["name"]
-        out["exchange"] = meta["exchangeCode"]
-        out["currency"] = self.currency
+        out["name"] = self.static_data.get(ticker, ticker) # add the name we provided in the static table
+        out["exchange"] = tiingo_supported_tickers_exch.get(ticker, " ")  # default to "" if not found
+        out["currency"] = tiingo_supported_tickers_ccy.get(ticker, "USD")  # default to USD if not found
         out["date"] = pd.to_datetime(df["date"]).dt.date
         return out
 
@@ -182,7 +187,7 @@ class FXUploader(TiingoUploader):
             "midPrice": "mid",
         })[["bid", "bid_size", "ask", "ask_size", "mid"]].copy()
         out["tk"] = ticker.upper()
-        out["name"] = ticker.upper()
+        out["name"] = self.static_data.get(ticker, ticker)  # add the name we provided in the static table
         out["date"] = pd.to_datetime(df["quoteTimestamp"]).dt.date
         return out
 
@@ -223,7 +228,7 @@ class CryptoUploader(TiingoUploader):
         })[["open", "high", "low", "close", "trades_done", "volume",
             "volume_notional", "base_ccy", "quote_ccy"]].copy()
         out["tk"] = ticker.upper()
-        out["name"] = ticker.upper()
+        out["name"] = self.static_data.get(ticker, ticker)  # add the name we provided in the static table
         out["date"] = pd.to_datetime(df["date"]).dt.date
         return out
 
@@ -244,17 +249,3 @@ def get_uploader(asset_class: str, **kwargs) -> TiingoUploader:
     except KeyError:
         raise ValueError(f"Unknown asset class {asset_class!r}. Use one of {list(UPLOADERS)}")
 
-
-async def main():
-    jobs = {
-        "equity": ["SPY", "AAPL", "MSFT"],
-        "fx": ["eurusd", "usdjpy"],
-        "crypto": ["btcusd", "ethusd"],
-    }
-    for asset_class, tickers in jobs.items():
-        await get_uploader(asset_class).upload_many(tickers)
-    await engine.dispose()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

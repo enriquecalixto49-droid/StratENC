@@ -1,3 +1,61 @@
+TIINGO_EQUITY_REDUCED = {
+
+    "us_broad_etf": {
+        "SPY": "SPDR S&P 500 ETF Trust",
+        "QQQ": "Invesco QQQ Trust (Nasdaq 100)",
+        "IWM": "iShares Russell 2000 ETF"
+    },
+
+    "us_style_etf": {
+        "IWD": "iShares Russell 1000 Value ETF",
+        "IWF": "iShares Russell 1000 Growth ETF",
+        "QUAL": "iShares MSCI USA Quality Factor ETF"
+    },
+
+    "us_sector_etf": {
+        "XLE": "Energy Select Sector SPDR",
+        "XLF": "Financial Select Sector SPDR",
+        "XLV": "Health Care Select Sector SPDR",
+        "XLI": "Industrial Select Sector SPDR",
+        "XLRE": "Real Estate Select Sector SPDR",
+        "XLK": "Technology Select Sector SPDR",
+    },
+
+    "intl_etf": {
+        "EFA": "iShares MSCI EAFE ETF",
+        "EEM": "iShares MSCI Emerging Markets ETF",
+        "VGK": "Vanguard FTSE Europe ETF",
+        "FEZ": "SPDR EURO STOXX 50 ETF",
+        "EWJ": "iShares MSCI Japan ETF",
+        "FXI": "iShares China Large-Cap ETF",
+        "INDA": "iShares MSCI India ETF",
+        "EWZ": "iShares MSCI Brazil ETF",
+    },
+
+    "fixed_income_etf": {
+        "SHY": "iShares 1-3 Year Treasury Bond ETF",
+        "IEF": "iShares 7-10 Year Treasury Bond ETF",
+        "TLT": "iShares 20+ Year Treasury Bond ETF",
+        "TIP": "iShares TIPS Bond ETF",
+        "AGG": "iShares Core U.S. Aggregate Bond ETF",
+        "LQD": "iShares iBoxx Investment Grade Corporate Bond ETF",
+        "HYG": "iShares iBoxx High Yield Corporate Bond ETF",
+        "EMB": "iShares J.P. Morgan USD Emerging Markets Bond ETF",
+    },
+
+    "commodity_etf": {
+        "GLD": "SPDR Gold Shares",
+        "SLV": "iShares Silver Trust",
+        "USO": "United States Oil Fund",
+        "UNG": "United States Natural Gas Fund",
+        "DBC": "Invesco DB Commodity Index Tracking Fund",
+        "DBA": "Invesco DB Agriculture Fund",
+        "CPER": "United States Copper Index Fund",
+    }
+}
+
+# We can add more categories in the future, but for now, we will focus on these ETFs for simplicity and to avoid hitting Tiingo's free account request limit.
+
 TIINGO_EQUITY_SERIES = {
 
     "us_broad_etf": {

@@ -2,17 +2,17 @@ from sqlalchemy import text
 
 from Backend.models import StaticData
 from Backend.session import SessionLocal
-from .fred_macro import FRED_MACRO_SERIES
-from .tiingo_crypto import TIINGO_CRYPTO_SERIES
-from .tiingo_equity import TIINGO_EQUITY_SERIES
-from .tiingo_fx import TIINGO_FX_SERIES
+from .fred_macro import FRED_MACRO_SERIES 
+from .tiingo_crypto import TIINGO_CRYPTO_SERIES, TIINGO_CRYPTO_REDUCED 
+from .tiingo_equity import TIINGO_EQUITY_SERIES, TIINGO_EQUITY_REDUCED
+from .tiingo_fx import TIINGO_FX_SERIES, TIINGO_FX_REDUCED
 from Backend.tables import FXS, cryptoS, equityS, macroS
 
 STATIC_TABLES: dict[str, dict] = {
     macroS: FRED_MACRO_SERIES,
-    equityS: TIINGO_EQUITY_SERIES,
-    FXS: TIINGO_FX_SERIES,
-    cryptoS: TIINGO_CRYPTO_SERIES
+    equityS: TIINGO_EQUITY_REDUCED,
+    FXS: TIINGO_FX_REDUCED,
+    cryptoS: TIINGO_CRYPTO_REDUCED
 }
 
 class StaticUploader:

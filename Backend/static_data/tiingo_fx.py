@@ -1,3 +1,12 @@
+TIINGO_FX_REDUCED = {
+
+    "g10_majors": {
+        "eurusd": "EUR / USD", "gbpusd": "GBP / USD", "usdjpy": "USD / JPY",
+        "usdchf": "USD / CHF", "usdcad": "USD / CAD", "audusd": "AUD / USD",
+        "nzdusd": "NZD / USD",
+    }
+}
+
 TIINGO_FX_SERIES = {
 
     "g10_majors": {
