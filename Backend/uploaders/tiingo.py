@@ -1,10 +1,12 @@
-import asyncio
+import datetime
+import os
 from abc import ABC, abstractmethod
+from os.path import join
 
 import pandas as pd
 import requests
+from pydantic import ValidationError
 from sqlalchemy import text
-from Backend.tables import equityT, FXT, cryptoT
 
 from Backend.config import settings
 from Backend.models import (  # adjust to wherever your models live
@@ -13,6 +15,7 @@ from Backend.models import (  # adjust to wherever your models live
     FXRecord,
 )
 from Backend.session import SessionLocal, engine
+from Backend.tables import FXT, cryptoT, equityT
 
 BASE_URL = "https://api.tiingo.com/tiingo"
 
@@ -66,9 +69,36 @@ class TiingoUploader(ABC):
 
     # --- validate ----------------------------------------------------
     def to_records(self, df: pd.DataFrame, ticker: str) -> list[dict]:
+        '''
+        First prepare the DataFrame (with the prepare method).
+        Then validate each row against the pydantic model.
+        Finally, return a list of dicts ready to be upserted into the database.
+        '''
         clean = self.prepare(df, ticker)
-        clean = clean.astype(object).where(clean.notna(), None)    # NaN -> None (NULL)
-        return [self.record_model(**row).model_dump() for row in clean.to_dict("records")]
+        clean = clean.astype(object).where(clean.notna(), None)
+
+        valid: list[dict] = []
+
+        # Rejected rows will be logged and returned for further inspection, but they won't stop the process.
+        rejected: list[dict] = []
+
+        for i, row in enumerate(clean.to_dict("records")):
+            '''Validate each row against the pydantic model. 
+            If we don't, all the rows will be rejected if one row is invalid.'''
+            try:
+                record = self.record_model(**row)
+                valid.append(record.model_dump())
+            except ValidationError as e:
+                rejected.append({"ticker": ticker, "row": row.get("date"), "error": str(e)})
+        if rejected:
+            '''Log the rejected rows to a CSV file for further inspection.'''
+            root = 'Backend/static_data/rejected_assest/'
+            date_specific = join(root, f"{datetime.date.today()}")
+            if not os.path.exists(date_specific):
+                os.makedirs(root, exist_ok=True)
+            pd.DataFrame(rejected).to_csv(join(date_specific,f"{self.table}_{datetime.date.today()}.csv")
+                                          , index=False)
+        return valid
 
     # --- save --------------------------------------------------------
     def _sql_type(self, col: str) -> str:
