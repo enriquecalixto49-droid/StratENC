@@ -4,10 +4,11 @@ import pandas as pd
 import requests
 from sqlalchemy import text
 
-from Backend.config import settings
-from Backend.models import MacroRecord  # adjust to wherever your models live
-from Backend.session import SessionLocal, engine
-from Backend.tables import macroT
+from ..core.config import settings
+from ..core.session import SessionLocal, engine
+from ..models.val_models import MacroRecord  # adjust to wherever your models live
+from ..static_data.tables import macroT
+
 
 class FredUploader:
     '''

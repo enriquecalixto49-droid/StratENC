@@ -12,12 +12,12 @@ import asyncio
 
 from sqlalchemy import text
 
-from .uploaders.macro import FredUploader
-from .session import SessionLocal, engine
-from .static_data.static_repo import StaticUploader  
-from .static_data.static_repo import STATIC_TABLES  
-from .uploaders.tiingo import get_uploader
-from .tables import macroS, equityS, FXS, cryptoS  
+from .macro import FredUploader
+from ..core.session import SessionLocal, engine
+from ..static_data.static_repo import StaticUploader  
+from ..static_data.static_repo import STATIC_TABLES  
+from .tiingo import get_uploader
+from ..static_data.tables import macroS, equityS, FXS, cryptoS  
 
 
 SOURCES = {
@@ -75,7 +75,7 @@ async def main() -> None:
         python -m Backend --source equity crypto --start 2024-01-01 --skip-static
     '''
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    ap.add_argument("--source", nargs="+", choices=list(SOURCES)) # python app.py --source fred tiingo
+    ap.add_argument("--source", nargs="+", choices=list(SOURCES)) --source fred tiingo
     ap.add_argument("--category", nargs="+")
     ap.add_argument("--start", help="start date for Tiingo downloads (FRED always downloads full history)")
     # by default we sync the static tables, but this option allows you to skip that step if you know the static data is already up to date

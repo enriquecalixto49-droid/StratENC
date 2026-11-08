@@ -1,12 +1,12 @@
 from sqlalchemy import text
 
-from Backend.models import StaticData
-from Backend.session import SessionLocal
-from .fred_macro import FRED_MACRO_SERIES 
-from .tiingo_crypto import TIINGO_CRYPTO_SERIES, TIINGO_CRYPTO_REDUCED 
-from .tiingo_equity import TIINGO_EQUITY_SERIES, TIINGO_EQUITY_REDUCED
-from .tiingo_fx import TIINGO_FX_SERIES, TIINGO_FX_REDUCED
-from Backend.tables import FXS, cryptoS, equityS, macroS
+from ..core.session import SessionLocal
+from ..models.val_models import StaticData
+from .fred_macro import FRED_MACRO_SERIES
+from .tables import FXS, cryptoS, equityS, macroS
+from .tiingo_crypto import TIINGO_CRYPTO_REDUCED, TIINGO_CRYPTO_SERIES
+from .tiingo_equity import TIINGO_EQUITY_REDUCED, TIINGO_EQUITY_SERIES
+from .tiingo_fx import TIINGO_FX_REDUCED, TIINGO_FX_SERIES
 
 STATIC_TABLES: dict[str, dict] = {
     macroS: FRED_MACRO_SERIES,

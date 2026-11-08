@@ -8,14 +8,14 @@ import requests
 from pydantic import ValidationError
 from sqlalchemy import text
 
-from Backend.config import settings
-from Backend.models import (  # adjust to wherever your models live
+from ..core.config import settings
+from ..core.session import SessionLocal
+from ..models.val_models import (  # adjust to wherever your models live
     CryptoRecord,
     EquityRecord,
     FXRecord,
 )
-from Backend.session import SessionLocal, engine
-from Backend.tables import FXT, cryptoT, equityT
+from ..static_data.tables import FXT, cryptoT, equityT
 
 BASE_URL = "https://api.tiingo.com/tiingo"
 
