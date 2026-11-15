@@ -10,8 +10,15 @@ from .routers.prices import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # One connection per request and shutdown when finished
-
+    '''
+    The engine is a parking lot of database connections. It’s created once, when your app starts, and it holds a few open connections to Neon so they can be reused.
+    A session is one person borrowing a connection for a single request. get_session handles that: borrow a connection when the request starts, give it back when the request ends.
+    
+    So there are two separate things to manage:
+        1 - Borrowing and returning, for every request. That’s get_session.
+        2 - Opening and closing the whole parking lot, once. That’s lifespan.
+    '''
+    
     # startup: fail fast if the DB is unreachable
     async with engine_api.begin() as conn:
         await conn.execute(text("SELECT 1"))
