@@ -8,11 +8,21 @@ from .config import settings
 
 # Create a database engine to connect with the database
 engine: AsyncEngine = create_async_engine(
+    url= settings.POSTGRES_URL_DIRECT,
+    echo = True #Log SQL queries
+)
+
+engine_api: AsyncEngine = create_async_engine(
     url= settings.POSTGRES_URL,
     echo = True #Log SQL queries
 )
 
 SessionLocal = async_sessionmaker(
     engine,
+    expire_on_commit=False,  # keeps objects usable after commit
+)
+
+SessionApi = async_sessionmaker(
+    engine_api,
     expire_on_commit=False,  # keeps objects usable after commit
 )

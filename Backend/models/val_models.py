@@ -115,6 +115,7 @@ class EquityRecord(BaseRecord):
     volume: OptionalPositiveDecimal
     adjClose: OptionalPositiveDecimal
     adjHigh: OptionalPositiveDecimal
+    adjLow: OptionalPositiveDecimal
     adjOpen: OptionalPositiveDecimal
     adjVolume: OptionalPositiveDecimal
     divCash: OptionalPositiveDecimal

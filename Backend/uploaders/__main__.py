@@ -69,13 +69,13 @@ async def main() -> None:
     '''
     Set up the shell command line interface and run the appropriate data uploaders based on user input.
     Example usage:
-        python -m Backend --source fred equity --category us_rates us_credit --start 2015-01-01
-        python -m Backend # sync static tables + load everything
-        python -m Backend --source fred --category us_rates us_credit
-        python -m Backend --source equity crypto --start 2024-01-01 --skip-static
+        python -m backend.uploaders --source fred equity --category us_rates us_credit --start 2015-01-01
+        python -m backend.uploaders # sync static tables + load everything
+        python -m backend.uploaders --source fred --category us_rates us_credit
+        python -m backend.uploaders --source equity crypto --start 2024-01-01 --skip-static
     '''
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    ap.add_argument("--source", nargs="+", choices=list(SOURCES)) --source fred tiingo
+    ap.add_argument("--source", nargs="+", choices=list(SOURCES)) #--source fred tiingo
     ap.add_argument("--category", nargs="+")
     ap.add_argument("--start", help="start date for Tiingo downloads (FRED always downloads full history)")
     # by default we sync the static tables, but this option allows you to skip that step if you know the static data is already up to date

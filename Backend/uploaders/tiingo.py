@@ -92,10 +92,10 @@ class TiingoUploader(ABC):
                 rejected.append({"ticker": ticker, "row": row.get("date"), "error": str(e)})
         if rejected:
             '''Log the rejected rows to a CSV file for further inspection.'''
-            root = 'Backend/static_data/rejected_assest/'
+            root = 'backend/uploaders/rejected_assest/'
             date_specific = join(root, f"{datetime.date.today()}")
             if not os.path.exists(date_specific):
-                os.makedirs(root, exist_ok=True)
+                os.makedirs(date_specific, exist_ok=True)
             pd.DataFrame(rejected).to_csv(join(date_specific,f"{self.table}_{datetime.date.today()}.csv")
                                           , index=False)
         return valid
@@ -159,7 +159,7 @@ class EquityUploader(TiingoUploader):
         "exchange": "exchange", "currency": "currency",
         "open": "open", "high": "high", "low": "low", "close": "close",
         "volume": "volume",
-        "adjOpen": "adj_open", "adjHigh": "adj_high", "adjClose": "adj_close",
+        "adjOpen": "adj_open", "adjHigh": "adj_high", "adjLow": "adj_low","adjClose": "adj_close",
         "adjVolume": "adj_volume",
         "divCash": "div_cash", "splitFactor": "split_factor",
     }
@@ -167,7 +167,7 @@ class EquityUploader(TiingoUploader):
 
     PRICE_FIELDS = [
         "open", "high", "low", "close", "volume",
-        "adjOpen", "adjHigh", "adjClose", "adjVolume",
+        "adjOpen", "adjHigh", "adjLow", "adjClose", "adjVolume",
         "divCash", "splitFactor",
     ]
 
