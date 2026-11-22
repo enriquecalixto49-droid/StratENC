@@ -56,12 +56,17 @@ TIINGO_EQUITY_REDUCED = {
 
 # We can add more categories in the future, but for now, we will focus on these ETFs for simplicity and to avoid hitting Tiingo's free account request limit.
 
+# ----------------------------------------------------------------------
+# TIINGO_EQUITY_SERIES: 179 tickers (61 ETFs + 118 stocks)
+# Budget: 1 API request per ticker. Whole nightly run (equity + fx + crypto) = 233 requests
+# -> about 4.9 h at 48 requests/hour, under GitHub's 6 h job limit.
+# Removed vs. the previous version: VOO, IVV (duplicates of SPY), JNK (duplicate of HYG),
+# plus the smaller / most overlapping names in each stock sector.
+# ----------------------------------------------------------------------
 TIINGO_EQUITY_SERIES = {
 
     "us_broad_etf": {
         "SPY": "SPDR S&P 500 ETF Trust",
-        "VOO": "Vanguard S&P 500 ETF",
-        "IVV": "iShares Core S&P 500 ETF",
         "VTI": "Vanguard Total Stock Market ETF",
         "QQQ": "Invesco QQQ Trust (Nasdaq 100)",
         "DIA": "SPDR Dow Jones Industrial Average ETF",
@@ -124,7 +129,6 @@ TIINGO_EQUITY_SERIES = {
         "AGG": "iShares Core U.S. Aggregate Bond ETF",
         "LQD": "iShares iBoxx Investment Grade Corporate Bond ETF",
         "HYG": "iShares iBoxx High Yield Corporate Bond ETF",
-        "JNK": "SPDR Bloomberg High Yield Bond ETF",
         "EMB": "iShares J.P. Morgan USD Emerging Markets Bond ETF",
         "MUB": "iShares National Muni Bond ETF",
     },
@@ -146,112 +150,91 @@ TIINGO_EQUITY_SERIES = {
         "FXF": "Invesco CurrencyShares Swiss Franc Trust",
     },
 
-    "tech": {
+    "tech": {  # 14
         "AAPL": "Apple Inc.", "MSFT": "Microsoft Corp.", "NVDA": "NVIDIA Corp.",
         "AVGO": "Broadcom Inc.", "ORCL": "Oracle Corp.", "AMD": "Advanced Micro Devices Inc.",
         "CRM": "Salesforce Inc.", "ADBE": "Adobe Inc.", "CSCO": "Cisco Systems Inc.",
         "INTC": "Intel Corp.", "QCOM": "Qualcomm Inc.", "TXN": "Texas Instruments Inc.",
-        "IBM": "International Business Machines Corp.", "NOW": "ServiceNow Inc.",
-        "INTU": "Intuit Inc.", "MU": "Micron Technology Inc.", "AMAT": "Applied Materials Inc.",
-        "LRCX": "Lam Research Corp.", "KLAC": "KLA Corp.", "PANW": "Palo Alto Networks Inc.",
-        "PLTR": "Palantir Technologies Inc.", "ANET": "Arista Networks Inc.",
+        "IBM": "International Business Machines Corp.", "MU": "Micron Technology Inc.",
     },
 
-    "communication": {
+    "communication": {  # 6
         "GOOGL": "Alphabet Inc. Class A", "META": "Meta Platforms Inc.",
         "NFLX": "Netflix Inc.", "DIS": "Walt Disney Co.", "T": "AT&T Inc.",
-        "VZ": "Verizon Communications Inc.", "TMUS": "T-Mobile US Inc.",
-        "CMCSA": "Comcast Corp.", "CHTR": "Charter Communications Inc.",
+        "VZ": "Verizon Communications Inc.",
     },
 
-    "consumer_discretionary": {
+    "consumer_discretionary": {  # 9
         "AMZN": "Amazon.com Inc.", "TSLA": "Tesla Inc.", "HD": "Home Depot Inc.",
         "MCD": "McDonald's Corp.", "LOW": "Lowe's Companies Inc.", "NKE": "Nike Inc.",
-        "SBUX": "Starbucks Corp.", "BKNG": "Booking Holdings Inc.", "TJX": "TJX Companies Inc.",
-        "GM": "General Motors Co.", "F": "Ford Motor Co.", "ABNB": "Airbnb Inc.",
-        "CMG": "Chipotle Mexican Grill Inc.", "MAR": "Marriott International Inc.",
+        "SBUX": "Starbucks Corp.", "BKNG": "Booking Holdings Inc.", "GM": "General Motors Co.",
     },
 
-    "consumer_staples": {
+    "consumer_staples": {  # 8
         "WMT": "Walmart Inc.", "PG": "Procter & Gamble Co.", "KO": "Coca-Cola Co.",
-        "COST": "Costco Wholesale Corp.", "PEP": "PepsiCo Inc.", "PM": "Philip Morris International Inc.",
-        "MO": "Altria Group Inc.", "MDLZ": "Mondelez International Inc.", "CL": "Colgate-Palmolive Co.",
-        "KMB": "Kimberly-Clark Corp.", "TGT": "Target Corp.", "GIS": "General Mills Inc.",
-        "KHC": "Kraft Heinz Co.",
+        "COST": "Costco Wholesale Corp.", "PEP": "PepsiCo Inc.",
+        "PM": "Philip Morris International Inc.", "MDLZ": "Mondelez International Inc.",
+        "CL": "Colgate-Palmolive Co.",
     },
 
-    "health_care": {
+    "health_care": {  # 11
         "LLY": "Eli Lilly and Co.", "UNH": "UnitedHealth Group Inc.", "JNJ": "Johnson & Johnson",
         "MRK": "Merck & Co. Inc.", "ABBV": "AbbVie Inc.", "PFE": "Pfizer Inc.",
         "TMO": "Thermo Fisher Scientific Inc.", "ABT": "Abbott Laboratories", "AMGN": "Amgen Inc.",
-        "GILD": "Gilead Sciences Inc.", "ISRG": "Intuitive Surgical Inc.", "MDT": "Medtronic plc",
-        "BMY": "Bristol-Myers Squibb Co.", "DHR": "Danaher Corp.", "CVS": "CVS Health Corp.",
-        "REGN": "Regeneron Pharmaceuticals Inc.", "VRTX": "Vertex Pharmaceuticals Inc.",
+        "ISRG": "Intuitive Surgical Inc.", "MDT": "Medtronic plc",
     },
 
-    "financials": {
+    "financials": {  # 12
         "JPM": "JPMorgan Chase & Co.", "BAC": "Bank of America Corp.", "GS": "Goldman Sachs Group Inc.",
         "MS": "Morgan Stanley", "BRK-B": "Berkshire Hathaway Inc. Class B", "V": "Visa Inc.",
         "MA": "Mastercard Inc.", "WFC": "Wells Fargo & Co.", "C": "Citigroup Inc.",
         "SCHW": "Charles Schwab Corp.", "BLK": "BlackRock Inc.", "AXP": "American Express Co.",
-        "SPGI": "S&P Global Inc.", "MMC": "Marsh & McLennan Companies Inc.",
-        "PGR": "Progressive Corp.", "CB": "Chubb Ltd.", "BX": "Blackstone Inc.", "USB": "U.S. Bancorp",
     },
 
-    "energy_upstream_services": {
+    "energy_upstream_services": {  # 10 (unchanged)
         "XOM": "Exxon Mobil Corp.", "CVX": "Chevron Corp.", "COP": "ConocoPhillips",
         "EOG": "EOG Resources Inc.", "OXY": "Occidental Petroleum Corp.", "DVN": "Devon Energy Corp.",
         "FANG": "Diamondback Energy Inc.", "SLB": "Schlumberger Ltd.", "HAL": "Halliburton Co.",
         "BKR": "Baker Hughes Co.",
     },
 
-    "energy_midstream_refining": {
+    "energy_midstream_refining": {  # 6
         "KMI": "Kinder Morgan Inc.", "WMB": "Williams Companies Inc.", "OKE": "ONEOK Inc.",
-        "ET": "Energy Transfer LP", "EPD": "Enterprise Products Partners LP",
         "LNG": "Cheniere Energy Inc.", "MPC": "Marathon Petroleum Corp.",
-        "VLO": "Valero Energy Corp.", "PSX": "Phillips 66",
+        "VLO": "Valero Energy Corp.",
     },
 
-    "industrials": {
-        "CAT": "Caterpillar Inc.", "GE": "GE Aerospace", "GEV": "GE Vernova Inc.",
-        "HON": "Honeywell International Inc.", "RTX": "RTX Corp.", "LMT": "Lockheed Martin Corp.",
-        "NOC": "Northrop Grumman Corp.", "GD": "General Dynamics Corp.", "BA": "Boeing Co.",
-        "DE": "Deere & Co.", "UPS": "United Parcel Service Inc.", "UNP": "Union Pacific Corp.",
-        "CSX": "CSX Corp.", "ETN": "Eaton Corp. plc", "EMR": "Emerson Electric Co.",
-        "ITW": "Illinois Tool Works Inc.", "MMM": "3M Co.", "WM": "Waste Management Inc.",
-        "FDX": "FedEx Corp.", "LHX": "L3Harris Technologies Inc.",
+    "industrials": {  # 12
+        "CAT": "Caterpillar Inc.", "GE": "GE Aerospace", "HON": "Honeywell International Inc.",
+        "RTX": "RTX Corp.", "LMT": "Lockheed Martin Corp.", "NOC": "Northrop Grumman Corp.",
+        "BA": "Boeing Co.", "DE": "Deere & Co.", "UPS": "United Parcel Service Inc.",
+        "UNP": "Union Pacific Corp.", "ETN": "Eaton Corp. plc", "WM": "Waste Management Inc.",
     },
 
-    "materials": {
+    "materials": {  # 7
         "LIN": "Linde plc", "SHW": "Sherwin-Williams Co.", "APD": "Air Products and Chemicals Inc.",
-        "ECL": "Ecolab Inc.", "DD": "DuPont de Nemours Inc.", "DOW": "Dow Inc.",
-        "NUE": "Nucor Corp.", "STLD": "Steel Dynamics Inc.", "FCX": "Freeport-McMoRan Inc.",
-        "NEM": "Newmont Corp.", "SCCO": "Southern Copper Corp.",
+        "ECL": "Ecolab Inc.", "NUE": "Nucor Corp.", "FCX": "Freeport-McMoRan Inc.",
+        "NEM": "Newmont Corp.",
     },
 
-    "agriculture": {
+    "agriculture": {  # 4 (unchanged)
         "ADM": "Archer-Daniels-Midland Co.", "BG": "Bunge Global SA",
         "CTVA": "Corteva Inc.", "MOS": "Mosaic Co.",
     },
 
-    "utilities": {
+    "utilities": {  # 6
         "NEE": "NextEra Energy Inc.", "DUK": "Duke Energy Corp.", "SO": "Southern Co.",
         "D": "Dominion Energy Inc.", "AEP": "American Electric Power Co.", "SRE": "Sempra",
-        "EXC": "Exelon Corp.", "XEL": "Xcel Energy Inc.", "PCG": "PG&E Corp.",
-        "CEG": "Constellation Energy Corp.", "VST": "Vistra Corp.",
     },
 
-    "real_estate": {
+    "real_estate": {  # 5
         "PLD": "Prologis Inc.", "AMT": "American Tower Corp.", "EQIX": "Equinix Inc.",
-        "CCI": "Crown Castle Inc.", "PSA": "Public Storage", "O": "Realty Income Corp.",
-        "SPG": "Simon Property Group Inc.", "WELL": "Welltower Inc.", "DLR": "Digital Realty Trust Inc.",
+        "PSA": "Public Storage", "O": "Realty Income Corp.",
     },
 
-    "adr": {
+    "adr": {  # 8
         "TSM": "Taiwan Semiconductor Manufacturing Co. ADR", "ASML": "ASML Holding NV ADR",
         "NVO": "Novo Nordisk A/S ADR", "NVS": "Novartis AG ADR", "UBS": "UBS Group AG",
-        "SAP": "SAP SE ADR", "SHEL": "Shell plc ADR", "BP": "BP plc ADR",
-        "TTE": "TotalEnergies SE ADR", "TM": "Toyota Motor Corp. ADR",
-        "BABA": "Alibaba Group Holding Ltd. ADR", "DEO": "Diageo plc ADR",
+        "SAP": "SAP SE ADR", "SHEL": "Shell plc ADR", "TM": "Toyota Motor Corp. ADR",
     }
 }

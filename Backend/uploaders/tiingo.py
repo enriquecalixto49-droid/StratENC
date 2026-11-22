@@ -17,17 +17,50 @@ from ..models.val_models import (  # adjust to wherever your models live
 )
 from ..static_data.tables import FXT, cryptoT, equityT
 
+import threading
+import time
+import json
+import asyncio
+
+from pathlib import Path
+
 BASE_URL = "https://api.tiingo.com/tiingo"
 
 # Upload metadata without using an additional API request. This is a reduced set of tickers that are known to be supported by Tiingo.
+
+# tiingo.py lives in backend/uploaders/, the CSV in backend/static_data/ -> To make sure the github scheduler reads it. 
+CSV_PATH = Path(__file__).resolve().parent.parent / "static_data" / "supported_tickers.csv"
+
 tiingo_tickers = pd.read_csv(
-    "Backend/static_data/supported_tickers.csv",
+    CSV_PATH,
     usecols=["ticker", "priceCurrency", "exchange"]
 ).set_index("ticker")
 
 # Lookup dictionaries
 tiingo_supported_tickers_ccy = tiingo_tickers["priceCurrency"].to_dict()
 tiingo_supported_tickers_exch = tiingo_tickers["exchange"].to_dict()
+
+
+class RateLimiter:
+    '''
+    Motivation: Tiingo free API allows for 50 requests per hour. Thus, we will evenly space request 
+                in this interval to make it run during the night through a scheduler. 
+    '''
+    def __init__(self, calls: int, total_seconds: float):
+        self.interval = total_seconds/calls
+        self._next_allowed = 0.0 #Stores the time when the next request is allowed, beginning at 0.
+        self._lock = threading.Lock() # This prevents two threads from modifying _next_allowed simultaneously.
+
+    def wait(self) -> None:
+        with self._lock:
+            now = time.monotonic() # returns a steadily increasing clock, not affected by clock changes like time.time().
+            delay = self._next_allowed - now
+            self._next_allowed = max(now, self._next_allowed) + self.interval
+        if delay > 0:
+            time.sleep(delay)                      
+
+# One limiter for the whole module -> 48 to be conservative, 3600 sec -> 1h
+TIINGO_LIMITER = RateLimiter(calls=48, total_seconds=3600)
 
 class TiingoUploader(ABC):
     '''
@@ -52,11 +85,39 @@ class TiingoUploader(ABC):
         self.static_data = static_data or {}
 
     def _request(self, path: str, params: dict | None = None):
-        response = requests.get(
-            f"{BASE_URL}/{path}", params=params, headers=self.headers, timeout=30
-        )
-        response.raise_for_status()
+        TIINGO_LIMITER.wait()
+        try:
+            response = requests.get(
+                f"{BASE_URL}/{path}", params=params, headers=self.headers, timeout=30
+            )
+        except (requests.Timeout, requests.ConnectionError) as e:
+            print(f"[tiingo] network error on {path}: {e!r}")
+            time.sleep(10)
+
+        # 429 error -> free limit of requests reached. 
+        if response.status_code == 429:
+            wait = self._backoff_seconds(response)
+            if wait == 60: # 60 is the default value. We want to inspect the json file if the headers dont contain Retry-After to catch the message if it exists. 
+                body = response.json()
+                with open("429error.json", "w", encoding="utf-8") as f:
+                    json.dump(body, f, indent = 4)
+            print(f'tiingo 429 on {path}, sleeping {wait} seconds')
+            time.sleep(wait)
+
+        response.raise_for_status() # other 4xx (bad ticker...) -> fail fast
         return response.json()
+
+    @staticmethod
+    def _backoff_seconds(response) -> int:
+        '''
+            If there is a hint in the response body indicating the time until the next round 
+            of free requests, we will use it. 
+            Else, we will wait 60 seconds
+        '''
+        retry_after = response.headers.get("Retry-After") 
+        if retry_after and retry_after.isdigit():
+            return int(retry_after)
+        return 60
 
     # --- asset-specific ----------------------------------------------
     @abstractmethod
@@ -92,7 +153,7 @@ class TiingoUploader(ABC):
                 rejected.append({"ticker": ticker, "row": row.get("date"), "error": str(e)})
         if rejected:
             '''Log the rejected rows to a CSV file for further inspection.'''
-            root = 'backend/uploaders/rejected_assest/'
+            root = Path(__file__).resolve() / "rejected_assets"
             date_specific = join(root, f"{datetime.date.today()}")
             if not os.path.exists(date_specific):
                 os.makedirs(date_specific, exist_ok=True)
@@ -132,7 +193,23 @@ class TiingoUploader(ABC):
 
     # --- run ---------------------------------------------------------
     async def upload(self, ticker: str, start: str | None = None) -> int:
-        df = self.get(ticker, start or self.default_start)
+        '''
+        async upload()
+        |
+        +--> await asyncio.to_thread(get)
+
+        EVENT LOOP FREE
+
+        Worker Thread:
+            |
+            +--> requests.get()
+            |
+            +--> time.sleep(75)
+        
+        If we don't use an asynchronous structure, the loop gets stuck if a requests 
+        takes more than 75 seconds until it finishes. 
+        '''
+        df = await asyncio.to_thread(self.get, ticker, start or self.default_start)
         if df.empty:
             return 0
         records = self.to_records(df, ticker)

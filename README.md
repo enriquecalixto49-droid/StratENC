@@ -35,7 +35,7 @@ The project has two parts:
 | Frontend | React |
 | Backend / API | Python |
 | Backtest engine | C++ (exposed to Python) |
-| Database | PostgreSQL |
+| Database | PostgreSQL - Neon platform server |
 | Data sources | Tiingo, FRED (options and futures: to be defined, possibly Polygon) |
 
 ## Architecture

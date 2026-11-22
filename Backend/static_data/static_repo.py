@@ -4,15 +4,15 @@ from ..core.session import SessionLocal
 from ..models.val_models import StaticData
 from .fred_macro import FRED_MACRO_SERIES
 from .tables import FXS, cryptoS, equityS, macroS
-from .tiingo_crypto import TIINGO_CRYPTO_REDUCED, TIINGO_CRYPTO_SERIES
-from .tiingo_equity import TIINGO_EQUITY_REDUCED, TIINGO_EQUITY_SERIES
-from .tiingo_fx import TIINGO_FX_REDUCED, TIINGO_FX_SERIES
+from .tiingo_crypto import TIINGO_CRYPTO_SERIES
+from .tiingo_equity import TIINGO_EQUITY_SERIES
+from .tiingo_fx import TIINGO_FX_SERIES
 
 STATIC_TABLES: dict[str, dict] = {
     macroS: FRED_MACRO_SERIES,
-    equityS: TIINGO_EQUITY_REDUCED,
-    FXS: TIINGO_FX_REDUCED,
-    cryptoS: TIINGO_CRYPTO_REDUCED
+    equityS: TIINGO_EQUITY_SERIES,
+    FXS: TIINGO_FX_SERIES,
+    cryptoS: TIINGO_CRYPTO_SERIES
 }
 
 class StaticUploader:
