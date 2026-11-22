@@ -21,11 +21,14 @@ def _to_asyncpg(raw: str) -> str:
 
 
 class DataBaseSettings(BaseSettings):
-    POSTGRES_SERVER: str
-    POSTGRES_PORT: int
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_PRICES_DB: str
+    # Local Postgres (optional: not needed when DATABASE_URL is set)
+    POSTGRES_SERVER: str | None = None
+    POSTGRES_PORT: int | None = None
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_PRICES_DB: str | None = None
+
+    # API keys (required)
     FRED_API_KEY: str
     TIINGO_API_KEY: str
 
